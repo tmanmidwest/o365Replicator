@@ -26,8 +26,12 @@ class Settings(BaseSettings):
     admin_username: str = ""
     admin_password: str = ""
     session_ttl_hours: int = 12
-    # Set false only for local http testing; must be true behind the Cloudflare tunnel.
-    cookie_secure: bool = True
+    # Controls the session cookie's Secure flag:
+    #   "auto" (default) -> Secure only when the request arrived over https (via the
+    #                       tunnel's X-Forwarded-Proto). Works over both the https
+    #                       tunnel AND direct-http testing with no config change.
+    #   "true" / "false" -> force it on/off.
+    cookie_secure: str = "auto"
 
     # --- OAuth2 ---
     oauth_token_ttl_seconds: int = 3600

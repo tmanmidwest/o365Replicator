@@ -28,8 +28,9 @@ services:
       ADMIN_USERNAME: ""
       ADMIN_PASSWORD: ""
       SESSION_TTL_HOURS: "12"
-      # True behind the Cloudflare tunnel (HTTPS). Only set false for local http.
-      COOKIE_SECURE: "true"
+      # "auto" sets the cookie Secure flag based on the request scheme, so login
+      # works over the https tunnel AND direct http (by IP). Force with true/false.
+      COOKIE_SECURE: "auto"
       OAUTH_TOKEN_TTL_SECONDS: "3600"
     volumes:
       - o365_data:/data

@@ -9,7 +9,15 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import security
-from ..auth import COOKIE_NAME, admin_exists, create_session, destroy_session, get_session_user, require_login
+from ..auth import (
+    COOKIE_NAME,
+    admin_exists,
+    cookie_is_secure,
+    create_session,
+    destroy_session,
+    get_session_user,
+    require_login,
+)
 from ..config import settings
 from ..database import get_db
 from ..models import AdminUser, ApiKey, OAuthClient
@@ -20,12 +28,12 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 _SESSION_MAX_AGE = None  # session cookie tied to server-side expiry
 
 
-def _set_session_cookie(resp: RedirectResponse, token: str) -> None:
+def _set_session_cookie(request: Request, resp: RedirectResponse, token: str) -> None:
     resp.set_cookie(
         COOKIE_NAME,
         token,
         httponly=True,
-        secure=settings.cookie_secure,
+        secure=cookie_is_secure(request),
         samesite="lax",
         max_age=settings.session_ttl_hours * 3600,
         path="/",
@@ -67,7 +75,7 @@ def setup_submit(
     db.commit()
     token = create_session(db, user)
     resp = RedirectResponse("/", status_code=303)
-    _set_session_cookie(resp, token)
+    _set_session_cookie(request, resp, token)
     return resp
 
 
@@ -100,7 +108,7 @@ def login_submit(
         )
     token = create_session(db, user)
     resp = RedirectResponse("/", status_code=303)
-    _set_session_cookie(resp, token)
+    _set_session_cookie(request, resp, token)
     return resp
 
 

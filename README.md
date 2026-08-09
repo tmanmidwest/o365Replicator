@@ -62,8 +62,16 @@ ADMIN_PASSWORD=<a strong password>
 ```
 
 Passwords are stored only as PBKDF2 hashes. Sessions are server-side; the cookie is
-HttpOnly / SameSite=Lax / Secure. **Keep `COOKIE_SECURE=true` in production** (set it
-`false` only for local `http://` testing). Change your password anytime under **Account**.
+HttpOnly / SameSite=Lax, and its `Secure` flag follows **`COOKIE_SECURE`** (default
+`auto`). With `auto`, the cookie is marked `Secure` only when the request arrived over
+https — so login works over the https tunnel **and** direct `http://` access (e.g.
+hitting the container by IP in Portainer) with no change. Change your password anytime
+under **Account**.
+
+> **Login bounces back to the sign-in page?** That's a `Secure` cookie being dropped
+> over plain http. It's fixed by `COOKIE_SECURE=auto` (the default). If you'd pinned
+> `COOKIE_SECURE=true` and are reaching the app over http by IP/hostname, switch it to
+> `auto` (or `false`) and restart — your admin account persists in the volume.
 
 ### Machine credentials for Saviynt (Access page)
 
@@ -162,7 +170,7 @@ web UI; server/runtime settings are read each time the container starts.
 | `API_KEY` | Optional static key accepted via `X-API-Key` | _(blank)_ |
 | `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Bootstrap admin; blank → first-run setup screen | _(blank)_ |
 | `SESSION_TTL_HOURS` | UI session lifetime | `12` |
-| `COOKIE_SECURE` | `Secure` flag on the session cookie — **keep `true` behind the tunnel** | `true` |
+| `COOKIE_SECURE` | Session-cookie `Secure` flag: `auto` (by request scheme), or force `true`/`false`. `auto` works over the tunnel **and** direct http | `auto` |
 | `OAUTH_TOKEN_TTL_SECONDS` | Bearer token lifetime | `3600` |
 
 ### Deploying on Portainer

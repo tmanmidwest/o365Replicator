@@ -30,6 +30,21 @@ def now_utc() -> datetime:
     return datetime.now(timezone.utc).replace(tzinfo=None)
 
 
+def cookie_is_secure(request: Request) -> bool:
+    """Decide the session cookie's Secure flag.
+
+    "auto" bases it on the actual request scheme (which reflects the tunnel's
+    X-Forwarded-Proto when --proxy-headers is on), so login works over both the
+    https tunnel and direct-http testing. "true"/"false" force it.
+    """
+    mode = (settings.cookie_secure or "auto").strip().lower()
+    if mode in ("true", "1", "yes", "on"):
+        return True
+    if mode in ("false", "0", "no", "off"):
+        return False
+    return request.url.scheme == "https"
+
+
 # --- Admin bootstrap / lookup ---------------------------------------------------
 
 def admin_exists(db: Session) -> bool:
