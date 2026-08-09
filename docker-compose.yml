@@ -4,8 +4,20 @@ services:
     image: o365replicator:latest
     container_name: o365replicator
     ports:
-      - "8080:8080"
+      # Host:container. Both follow ${PORT} so changing the port needs one var.
+      - "${PORT:-8080}:${PORT:-8080}"
     environment:
+      # --- server / runtime (read at container launch) ---
+      HOST: "0.0.0.0"
+      PORT: "${PORT:-8080}"
+      # Trust proxy headers from the Cloudflare tunnel. Narrow this to the tunnel's
+      # source IP if you want to be stricter than "*".
+      FORWARDED_ALLOW_IPS: "*"
+      # Uvicorn worker processes. Keep at 1 for SQLite (see README caveat).
+      WEB_CONCURRENCY: "1"
+      LOG_LEVEL: "info"
+
+      # --- application config ---
       DATABASE_URL: sqlite:////data/o365replicator.db
       DEFAULT_EMAIL_FORMAT: first.last
       DEFAULT_DOMAIN: demo365.local

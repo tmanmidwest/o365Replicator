@@ -137,15 +137,53 @@ fires this callback and records the result in the activity log.
 
 ## Configuration
 
-Bootstrap defaults come from environment variables (see [`.env.example`](.env.example)),
-but everything is editable live in the web UI and persisted in the database:
+Everything is driven by environment variables (see [`.env.example`](.env.example)).
+Application settings seed the database on first run and are then editable live in the
+web UI; server/runtime settings are read each time the container starts.
+
+**Server / runtime** (read at launch):
+
+| Variable | Purpose | Default |
+|---|---|---|
+| `HOST` | Interface to bind inside the container | `0.0.0.0` |
+| `PORT` | Port the app listens on | `8080` |
+| `FORWARDED_ALLOW_IPS` | Upstream IPs whose `X-Forwarded-*` headers are trusted (Cloudflare tunnel) | `*` |
+| `WEB_CONCURRENCY` | Uvicorn worker processes (**keep 1 for SQLite**) | `1` |
+| `LOG_LEVEL` | `critical`…`trace` | `info` |
+
+**Application** (seed the DB on first run, then editable in the UI):
 
 | Variable | Purpose | Default |
 |---|---|---|
 | `DATABASE_URL` | SQLite (or any SQLAlchemy URL) | `sqlite:////data/o365replicator.db` |
 | `DEFAULT_EMAIL_FORMAT` | Initial address format | `first.last` |
+| `DEFAULT_EMAIL_CUSTOM_PATTERN` | Pattern when format is `custom` | `{f}{last}` |
 | `DEFAULT_DOMAIN` | Fallback domain | `demo365.local` |
-| `API_KEY` | If set, require `X-API-Key` on `/api/v1/provision` | _(disabled)_ |
+| `API_KEY` | Optional static key accepted via `X-API-Key` | _(blank)_ |
+| `ADMIN_USERNAME` / `ADMIN_PASSWORD` | Bootstrap admin; blank → first-run setup screen | _(blank)_ |
+| `SESSION_TTL_HOURS` | UI session lifetime | `12` |
+| `COOKIE_SECURE` | `Secure` flag on the session cookie — **keep `true` behind the tunnel** | `true` |
+| `OAUTH_TOKEN_TTL_SECONDS` | Bearer token lifetime | `3600` |
+
+### Deploying on Portainer
+
+The image reads all of the above from the container environment, so nothing is
+baked in. In Portainer:
+
+1. **Stacks → Add stack**, paste [`docker-compose.yml`](docker-compose.yml) (or point it at
+   this repo). It builds the image and creates the `o365_data` volume for SQLite.
+2. Set stack **environment variables** as needed — e.g. `PORT=8888`,
+   `ADMIN_USERNAME`/`ADMIN_PASSWORD`, `COOKIE_SECURE=true`. The compose file maps
+   `${PORT}:${PORT}`, so changing `PORT` moves both the container and published port.
+3. Point your Cloudflare tunnel's origin at `http://<host>:<PORT>` (plain HTTP —
+   Cloudflare terminates HTTPS).
+
+> **SQLite + workers:** keep `WEB_CONCURRENCY=1`. Multiple worker processes writing
+> the same SQLite file can hit lock contention. For higher concurrency, point
+> `DATABASE_URL` at Postgres/MySQL and raise the worker count.
+
+> **Persistence:** the database lives at `/data` in the container — keep the
+> `o365_data` volume mapped or your mailboxes/credentials reset on redeploy.
 
 ## API reference
 
