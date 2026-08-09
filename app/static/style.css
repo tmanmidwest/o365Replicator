@@ -104,3 +104,31 @@ form { margin: 0; }
 
 .lvl-warn td { background: rgba(245,158,11,.06); }
 .lvl-error td { background: rgba(239,68,68,.06); }
+
+/* nav account/logout */
+.nav-sep { width: 1px; height: 22px; background: var(--line); margin: 0 4px; align-self: center; }
+.logout-form { display: inline; }
+.nav-logout { background: none; border: 1px solid var(--line); color: var(--muted); padding: 8px 14px; border-radius: 8px; cursor: pointer; font: inherit; font-weight: 500; }
+.nav-logout:hover { color: var(--text); border-color: var(--muted); }
+
+/* auth pages */
+.auth-body { display: grid; place-items: center; min-height: 100vh; background: var(--bg); }
+.auth-card { width: 100%; max-width: 380px; background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 30px; }
+.auth-brand { display: flex; align-items: center; gap: 12px; margin-bottom: 22px; }
+.auth-brand .logo { width: 40px; height: 40px; display: grid; place-items: center; background: var(--accent); border-radius: 10px; font-size: 22px; }
+.auth-brand small { display: block; color: var(--muted); font-size: 12px; }
+.auth-title { font-size: 20px; margin: 0 0 4px; }
+.auth-sub { margin: 0 0 18px; font-size: 13px; }
+.btn.full { width: 100%; margin-top: 6px; }
+
+/* alerts */
+.alert { border-radius: 9px; padding: 12px 14px; margin-bottom: 16px; font-size: 14px; border: 1px solid var(--line); background: var(--panel-2); }
+.alert.err { border-color: #4a1c1c; color: #fca5a5; background: rgba(239,68,68,.08); }
+.alert.ok { border-color: #1c4a2f; color: #86efac; background: rgba(34,197,94,.08); }
+.alert.secret { border-color: var(--accent); background: rgba(59,130,246,.08); }
+.alert-head { font-weight: 600; margin-bottom: 8px; color: var(--text); }
+.secret-val { display: inline-block; background: var(--bg); border: 1px solid var(--line); border-radius: 6px; padding: 8px 10px; margin: 2px 0; word-break: break-all; color: var(--accent); user-select: all; }
+
+.kv { display: flex; gap: 12px; align-items: baseline; padding: 6px 0; flex-wrap: wrap; }
+.kv > span { min-width: 150px; color: var(--muted); font-size: 13px; }
+.row-revoked td { opacity: .5; }

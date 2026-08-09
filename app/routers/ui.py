@@ -1,4 +1,4 @@
-"""Server-rendered web UI for managing the mock provisioner."""
+"""Server-rendered web UI for managing the mock provisioner (login-protected)."""
 
 from pathlib import Path
 
@@ -8,8 +8,9 @@ from fastapi.templating import Jinja2Templates
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..auth import require_login
 from ..database import get_db
-from ..models import ActivityLog, DomainMapping, Mailbox
+from ..models import ActivityLog, AdminUser, DomainMapping, Mailbox
 from ..schemas import ConfigIn, EmployeeIn
 from ..seed import get_config
 from ..services import provision_employee
@@ -19,19 +20,19 @@ templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent
 
 
 @router.get("/", response_class=HTMLResponse)
-def dashboard(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+def dashboard(request: Request, user: AdminUser = Depends(require_login), db: Session = Depends(get_db)):
     mailboxes = list(db.execute(select(Mailbox).order_by(Mailbox.created_at.desc())).scalars())
     config = get_config(db)
     return templates.TemplateResponse(
         "dashboard.html",
-        {"request": request, "mailboxes": mailboxes, "config": config, "active": "dashboard"},
+        {"request": request, "mailboxes": mailboxes, "config": config, "active": "dashboard", "user": user},
     )
 
 
 @router.get("/new", response_class=HTMLResponse)
-def new_form(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+def new_form(request: Request, user: AdminUser = Depends(require_login), db: Session = Depends(get_db)):
     return templates.TemplateResponse(
-        "new.html", {"request": request, "config": get_config(db), "active": "new"}
+        "new.html", {"request": request, "config": get_config(db), "active": "new", "user": user}
     )
 
 
@@ -43,6 +44,7 @@ def create_mailbox(
     department: str = Form(""),
     job_title: str = Form(""),
     external_employee_id: str = Form(""),
+    user: AdminUser = Depends(require_login),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     employee = EmployeeIn(
@@ -58,7 +60,9 @@ def create_mailbox(
 
 
 @router.post("/mailboxes/{mailbox_id}/delete")
-def delete_mailbox_ui(mailbox_id: int, db: Session = Depends(get_db)) -> RedirectResponse:
+def delete_mailbox_ui(
+    mailbox_id: int, user: AdminUser = Depends(require_login), db: Session = Depends(get_db)
+) -> RedirectResponse:
     mailbox = db.get(Mailbox, mailbox_id)
     if mailbox is not None:
         db.delete(mailbox)
@@ -67,7 +71,7 @@ def delete_mailbox_ui(mailbox_id: int, db: Session = Depends(get_db)) -> Redirec
 
 
 @router.get("/settings", response_class=HTMLResponse)
-def settings_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+def settings_page(request: Request, user: AdminUser = Depends(require_login), db: Session = Depends(get_db)):
     config = get_config(db)
     domains = list(db.execute(select(DomainMapping).order_by(DomainMapping.company)).scalars())
     from ..email_generator import FORMATS
@@ -80,6 +84,7 @@ def settings_page(request: Request, db: Session = Depends(get_db)) -> HTMLRespon
             "domains": domains,
             "formats": list(FORMATS.keys()),
             "active": "settings",
+            "user": user,
         },
     )
 
@@ -95,6 +100,7 @@ def save_settings(
     callback_auth_header_name: str = Form(""),
     callback_auth_header_value: str = Form(""),
     callback_body_template: str = Form('{"employeeId": "{external_employee_id}", "email": "{email}"}'),
+    user: AdminUser = Depends(require_login),
     db: Session = Depends(get_db),
 ) -> RedirectResponse:
     config = get_config(db)
@@ -117,7 +123,10 @@ def save_settings(
 
 @router.post("/settings/domains")
 def add_domain_ui(
-    company: str = Form(...), domain: str = Form(...), db: Session = Depends(get_db)
+    company: str = Form(...),
+    domain: str = Form(...),
+    user: AdminUser = Depends(require_login),
+    db: Session = Depends(get_db),
 ) -> RedirectResponse:
     existing = db.execute(
         select(DomainMapping).where(DomainMapping.company == company)
@@ -131,7 +140,9 @@ def add_domain_ui(
 
 
 @router.post("/settings/domains/{mapping_id}/delete")
-def delete_domain_ui(mapping_id: int, db: Session = Depends(get_db)) -> RedirectResponse:
+def delete_domain_ui(
+    mapping_id: int, user: AdminUser = Depends(require_login), db: Session = Depends(get_db)
+) -> RedirectResponse:
     mapping = db.get(DomainMapping, mapping_id)
     if mapping is not None:
         db.delete(mapping)
@@ -140,10 +151,10 @@ def delete_domain_ui(mapping_id: int, db: Session = Depends(get_db)) -> Redirect
 
 
 @router.get("/activity", response_class=HTMLResponse)
-def activity_page(request: Request, db: Session = Depends(get_db)) -> HTMLResponse:
+def activity_page(request: Request, user: AdminUser = Depends(require_login), db: Session = Depends(get_db)):
     logs = list(
         db.execute(select(ActivityLog).order_by(ActivityLog.created_at.desc()).limit(200)).scalars()
     )
     return templates.TemplateResponse(
-        "activity.html", {"request": request, "logs": logs, "active": "activity"}
+        "activity.html", {"request": request, "logs": logs, "active": "activity", "user": user}
     )

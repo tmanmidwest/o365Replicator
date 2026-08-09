@@ -23,13 +23,13 @@
     <label>Default / fallback domain<input name="default_domain" value="{{ config.default_domain }}"></label>
   </div>
 
-  <h2>Write-back to SavvyIt</h2>
+  <h2>Write-back to Saviynt</h2>
   <label class="check">
     <input type="checkbox" name="callback_enabled" {{ 'checked' if config.callback_enabled else '' }}>
-    Push the generated email back to SavvyIt after provisioning
+    Push the generated email back to Saviynt after provisioning
   </label>
   <div class="row">
-    <label>Callback URL<input name="callback_url" value="{{ config.callback_url }}" placeholder="https://savvyit.example/api/employees/{external_employee_id}"></label>
+    <label>Callback URL<input name="callback_url" value="{{ config.callback_url }}" placeholder="https://saviynt.example/api/employees/{external_employee_id}"></label>
     <label>Method
       <select name="callback_method">
         {% for meth in ['POST','PUT','PATCH'] %}

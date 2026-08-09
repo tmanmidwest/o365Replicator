@@ -19,7 +19,7 @@ class Mailbox(Base):
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
 
-    # Identity from the source HR system (SavvyIt). Used for read-back / idempotency.
+    # Identity from the source HR system (Saviynt). Used for read-back / idempotency.
     external_employee_id: Mapped[str | None] = mapped_column(String(128), index=True, default=None)
 
     first_name: Mapped[str] = mapped_column(String(128))
@@ -74,7 +74,7 @@ class Config(Base):
     callback_method: Mapped[str] = mapped_column(String(8), default="POST")
     callback_auth_header_name: Mapped[str] = mapped_column(String(128), default="")
     callback_auth_header_value: Mapped[str] = mapped_column(String(512), default="")
-    # JSON string mapping SavvyIt field names -> tokens, e.g. {"email": "{email}", "id": "{external_employee_id}"}
+    # JSON string mapping Saviynt field names -> tokens, e.g. {"email": "{email}", "id": "{external_employee_id}"}
     callback_body_template: Mapped[str] = mapped_column(
         Text, default='{"employeeId": "{external_employee_id}", "email": "{email}"}'
     )

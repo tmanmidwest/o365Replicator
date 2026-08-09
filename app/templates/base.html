@@ -19,8 +19,16 @@
       <a href="/" class="{{ 'on' if active == 'dashboard' else '' }}">Mailboxes</a>
       <a href="/new" class="{{ 'on' if active == 'new' else '' }}">New hire</a>
       <a href="/settings" class="{{ 'on' if active == 'settings' else '' }}">Settings</a>
+      <a href="/access" class="{{ 'on' if active == 'access' else '' }}">Access</a>
       <a href="/activity" class="{{ 'on' if active == 'activity' else '' }}">Activity</a>
       <a href="/docs" target="_blank" rel="noopener">API&nbsp;↗</a>
+      {% if user %}
+      <span class="nav-sep"></span>
+      <a href="/account" class="{{ 'on' if active == 'account' else '' }}" title="Account">{{ user.username }}</a>
+      <form method="post" action="/logout" class="logout-form">
+        <button class="nav-logout" type="submit">Sign out</button>
+      </form>
+      {% endif %}
     </nav>
   </header>
   <main>

@@ -1,0 +1,13 @@
+{% extends "auth_base.html" %}
+{% block title %}First-run setup · o365Replicator{% endblock %}
+{% block content %}
+<h1 class="auth-title">Create admin account</h1>
+<p class="muted auth-sub">No administrator exists yet. Create one to secure the UI.</p>
+{% if error %}<div class="alert err">{{ error }}</div>{% endif %}
+<form method="post" action="/setup" class="form">
+  <label>Username<input name="username" value="{{ username or '' }}" required autofocus autocomplete="username"></label>
+  <label>Password <small class="muted">(min 8 chars)</small><input name="password" type="password" required autocomplete="new-password"></label>
+  <label>Confirm password<input name="confirm" type="password" required autocomplete="new-password"></label>
+  <button class="btn full" type="submit">Create &amp; sign in</button>
+</form>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Account · o365Replicator{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Account</h1></div>
+{% if message %}<div class="alert ok">{{ message }}</div>{% endif %}
+{% if error %}<div class="alert err">{{ error }}</div>{% endif %}
+<div class="card">
+  <h2>Signed in as</h2>
+  <p><strong>{{ user.username }}</strong>
+    {% if user.last_login_at %}<br><small class="muted">Last login {{ user.last_login_at.strftime('%Y-%m-%d %H:%M') }} UTC</small>{% endif %}
+  </p>
+</div>
+<form method="post" action="/account/password" class="card form">
+  <h2>Change password</h2>
+  <label>Current password<input name="current_password" type="password" required autocomplete="current-password"></label>
+  <div class="row">
+    <label>New password <small class="muted">(min 8)</small><input name="new_password" type="password" required autocomplete="new-password"></label>
+    <label>Confirm new password<input name="confirm" type="password" required autocomplete="new-password"></label>
+  </div>
+  <div class="actions"><button class="btn" type="submit">Update password</button></div>
+</form>
+{% endblock %}

@@ -2,7 +2,7 @@
 {% block title %}New hire · o365Replicator{% endblock %}
 {% block content %}
 <div class="page-head"><h1>Provision a new hire</h1></div>
-<p class="muted">Simulates a SavvyIt onboarding event. Generates an email using the current
+<p class="muted">Simulates a Saviynt onboarding event. Generates an email using the current
 format (<code>{{ config.email_format }}</code>) and persists a mailbox record.</p>
 
 <form method="post" action="/new" class="card form" id="newForm">
@@ -16,7 +16,7 @@ format (<code>{{ config.email_format }}</code>) and persists a mailbox record.</
   </div>
   <div class="row">
     <label>Job title<input name="job_title" placeholder="Analyst"></label>
-    <label>SavvyIt employee id<input name="external_employee_id" placeholder="E-1001"></label>
+    <label>Saviynt employee id<input name="external_employee_id" placeholder="E-1001"></label>
   </div>
   <div class="preview" id="preview">Live preview will appear here…</div>
   <div class="actions">

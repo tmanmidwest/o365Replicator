@@ -1,0 +1,90 @@
+{% extends "base.html" %}
+{% block title %}Access &amp; Credentials · o365Replicator{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Access &amp; Credentials</h1></div>
+<p class="muted">Credentials for Saviynt's connector to authenticate to this app. Secrets are shown
+<strong>once</strong> at creation and stored only as hashes — copy them now.</p>
+
+{% if new_api_key %}
+<div class="alert secret">
+  <div class="alert-head">New API key created — copy it now, it won't be shown again</div>
+  <code class="secret-val">{{ new_api_key }}</code>
+  <p class="muted">Send it to this app as the header <code>X-API-Key: {{ new_api_key }}</code></p>
+</div>
+{% endif %}
+{% if new_client_secret %}
+<div class="alert secret">
+  <div class="alert-head">New OAuth client created — copy the secret now, it won't be shown again</div>
+  <div class="kv"><span>client_id</span><code class="secret-val">{{ new_client_id }}</code></div>
+  <div class="kv"><span>client_secret</span><code class="secret-val">{{ new_client_secret }}</code></div>
+</div>
+{% endif %}
+
+<div class="card">
+  <h2>API keys</h2>
+  {% if api_keys %}
+  <table class="grid tight">
+    <thead><tr><th>Name</th><th>Key</th><th>Status</th><th>Last used</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+      {% for k in api_keys %}
+      <tr class="{{ 'row-revoked' if k.revoked else '' }}">
+        <td>{{ k.name }}</td>
+        <td><code>{{ k.prefix }}…</code></td>
+        <td>{% if k.revoked %}<span class="tag err">revoked</span>{% else %}<span class="tag ok">active</span>{% endif %}</td>
+        <td><small class="muted">{{ k.last_used_at.strftime('%Y-%m-%d %H:%M') if k.last_used_at else '—' }}</small></td>
+        <td><small class="muted">{{ k.created_at.strftime('%Y-%m-%d') }}</small></td>
+        <td>{% if not k.revoked %}
+          <form method="post" action="/access/api-keys/{{ k.id }}/revoke" onsubmit="return confirm('Revoke {{ k.name }}?')">
+            <button class="link-danger" type="submit">revoke</button>
+          </form>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">No API keys yet.</p>{% endif %}
+  <form method="post" action="/access/api-keys" class="inline-form">
+    <input name="name" placeholder="e.g. Saviynt connector" required>
+    <button class="btn small" type="submit">Generate API key</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>OAuth2 clients (client credentials)</h2>
+  {% if clients %}
+  <table class="grid tight">
+    <thead><tr><th>Name</th><th>client_id</th><th>Status</th><th>Last used</th><th>Created</th><th></th></tr></thead>
+    <tbody>
+      {% for c in clients %}
+      <tr class="{{ 'row-revoked' if c.revoked else '' }}">
+        <td>{{ c.name }}</td>
+        <td><code>{{ c.client_id }}</code></td>
+        <td>{% if c.revoked %}<span class="tag err">revoked</span>{% else %}<span class="tag ok">active</span>{% endif %}</td>
+        <td><small class="muted">{{ c.last_used_at.strftime('%Y-%m-%d %H:%M') if c.last_used_at else '—' }}</small></td>
+        <td><small class="muted">{{ c.created_at.strftime('%Y-%m-%d') }}</small></td>
+        <td>{% if not c.revoked %}
+          <form method="post" action="/access/oauth-clients/{{ c.id }}/revoke" onsubmit="return confirm('Revoke {{ c.name }}?')">
+            <button class="link-danger" type="submit">revoke</button>
+          </form>{% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="muted">No OAuth clients yet.</p>{% endif %}
+  <form method="post" action="/access/oauth-clients" class="inline-form">
+    <input name="name" placeholder="e.g. Saviynt OAuth app" required>
+    <button class="btn small" type="submit">Generate OAuth client</button>
+  </form>
+</div>
+
+<div class="card">
+  <h2>Connector settings for Saviynt</h2>
+  <div class="kv"><span>Provision endpoint</span><code>POST {{ provision_url }}</code></div>
+  <div class="kv"><span>API-key header</span><code>X-API-Key: &lt;your key&gt;</code></div>
+  <div class="kv"><span>OAuth token URL</span><code>POST {{ token_url }}</code></div>
+  <div class="kv"><span>OAuth grant</span><code>grant_type=client_credentials</code> (client_id + client_secret in body or Basic auth)</div>
+  <p class="hint">The token endpoint returns <code>{ "access_token", "token_type": "Bearer", "expires_in" }</code>.
+    Send it as <code>Authorization: Bearer &lt;access_token&gt;</code>.</p>
+</div>
+{% endblock %}

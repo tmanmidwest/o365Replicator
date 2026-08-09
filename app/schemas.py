@@ -6,7 +6,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class EmployeeIn(BaseModel):
-    """Inbound new-hire payload from SavvyIt (or the manual UI form)."""
+    """Inbound new-hire payload from Saviynt (or the manual UI form)."""
 
     first_name: str = Field(..., min_length=1, examples=["Jane"])
     last_name: str = Field(..., min_length=1, examples=["Doe"])
@@ -14,7 +14,7 @@ class EmployeeIn(BaseModel):
     department: str | None = Field(default=None, examples=["Finance"])
     job_title: str | None = Field(default=None, examples=["Analyst"])
     external_employee_id: str | None = Field(
-        default=None, description="SavvyIt's employee id, used for read-back.", examples=["E-1001"]
+        default=None, description="Saviynt's employee id, used for read-back.", examples=["E-1001"]
     )
 
 

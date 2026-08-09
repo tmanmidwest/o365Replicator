@@ -1,31 +1,30 @@
-"""Provisioning webhook + mailbox read API — the surface SavvyIt integrates against."""
+"""Provisioning webhook + mailbox read API — the surface Saviynt integrates against."""
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .. import email_generator
+from ..auth import require_api_client
 from ..database import get_db
-from ..deps import require_api_key
 from ..models import Mailbox
 from ..schemas import EmployeeIn, MailboxOut, PreviewIn, PreviewOut
 from ..seed import get_config
 from ..services import provision_employee
 
-router = APIRouter(prefix="/api/v1", tags=["provisioning"])
+router = APIRouter(prefix="/api/v1", tags=["provisioning"], dependencies=[Depends(require_api_client)])
 
 
 @router.post(
     "/provision",
     response_model=MailboxOut,
     status_code=status.HTTP_201_CREATED,
-    dependencies=[Depends(require_api_key)],
-    summary="Provision a mailbox for a new hire (SavvyIt onboarding webhook)",
+    summary="Provision a mailbox for a new hire (Saviynt onboarding webhook)",
 )
 def provision(employee: EmployeeIn, db: Session = Depends(get_db)) -> Mailbox:
     """Generate and store an email address for an employee, returning it synchronously.
 
-    If write-back is enabled in settings, the app also pushes the email to SavvyIt.
+    If write-back is enabled in settings, the app also pushes the email to Saviynt.
     Idempotent on `external_employee_id`.
     """
     return provision_employee(db, employee, source="webhook")
@@ -67,10 +66,10 @@ def get_mailbox(mailbox_id: int, db: Session = Depends(get_db)) -> Mailbox:
 @router.get(
     "/mailboxes/by-employee/{external_employee_id}",
     response_model=MailboxOut,
-    summary="Read back a mailbox by SavvyIt employee id",
+    summary="Read back a mailbox by Saviynt employee id",
 )
 def get_by_employee(external_employee_id: str, db: Session = Depends(get_db)) -> Mailbox:
-    """The read-back endpoint SavvyIt can poll to retrieve the generated email."""
+    """The read-back endpoint Saviynt can poll to retrieve the generated email."""
     mailbox = db.execute(
         select(Mailbox).where(Mailbox.external_employee_id == external_employee_id)
     ).scalar_one_or_none()

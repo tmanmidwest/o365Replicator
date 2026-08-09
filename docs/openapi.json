@@ -1,0 +1,1387 @@
+{
+    "openapi": "3.1.0",
+    "info": {
+        "title": "o365Replicator",
+        "description": "A mock Microsoft 365 email provisioning service for POC/demo use. Saviynt fires a new-hire webhook at `/api/v1/provision`; the service generates an email address, stores a mailbox record, returns it synchronously, and (optionally) writes it back to Saviynt.",
+        "version": "0.1.0"
+    },
+    "paths": {
+        "/oauth/token": {
+            "post": {
+                "tags": [
+                    "oauth"
+                ],
+                "summary": "OAuth2 client-credentials token endpoint",
+                "description": "Exchange client_id/client_secret for a short-lived Bearer access token.\n\nCredentials may be sent as form fields or via HTTP Basic auth, matching what\nSaviynt's REST connector supports.",
+                "operationId": "issue_token_oauth_token_post",
+                "parameters": [
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "content": {
+                        "application/x-www-form-urlencoded": {
+                            "schema": {
+                                "$ref": "#/components/schemas/Body_issue_token_oauth_token_post"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "title": "Response Issue Token Oauth Token Post"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/provision": {
+            "post": {
+                "tags": [
+                    "provisioning"
+                ],
+                "summary": "Provision a mailbox for a new hire (Saviynt onboarding webhook)",
+                "description": "Generate and store an email address for an employee, returning it synchronously.\n\nIf write-back is enabled in settings, the app also pushes the email to Saviynt.\nIdempotent on `external_employee_id`.",
+                "operationId": "provision_api_v1_provision_post",
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/EmployeeIn"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MailboxOut"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/preview": {
+            "post": {
+                "tags": [
+                    "provisioning"
+                ],
+                "summary": "Preview an address without saving",
+                "operationId": "preview_api_v1_preview_post",
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/PreviewIn"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/PreviewOut"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/mailboxes": {
+            "get": {
+                "tags": [
+                    "provisioning"
+                ],
+                "summary": "List provisioned mailboxes",
+                "operationId": "list_mailboxes_api_v1_mailboxes_get",
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/MailboxOut"
+                                    },
+                                    "title": "Response List Mailboxes Api V1 Mailboxes Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/mailboxes/{mailbox_id}": {
+            "get": {
+                "tags": [
+                    "provisioning"
+                ],
+                "summary": "Get Mailbox",
+                "operationId": "get_mailbox_api_v1_mailboxes__mailbox_id__get",
+                "parameters": [
+                    {
+                        "name": "mailbox_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Mailbox Id"
+                        }
+                    },
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MailboxOut"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "tags": [
+                    "provisioning"
+                ],
+                "summary": "Delete Mailbox",
+                "operationId": "delete_mailbox_api_v1_mailboxes__mailbox_id__delete",
+                "parameters": [
+                    {
+                        "name": "mailbox_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Mailbox Id"
+                        }
+                    },
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful Response"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/mailboxes/by-employee/{external_employee_id}": {
+            "get": {
+                "tags": [
+                    "provisioning"
+                ],
+                "summary": "Read back a mailbox by Saviynt employee id",
+                "description": "The read-back endpoint Saviynt can poll to retrieve the generated email.",
+                "operationId": "get_by_employee_api_v1_mailboxes_by_employee__external_employee_id__get",
+                "parameters": [
+                    {
+                        "name": "external_employee_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "string",
+                            "title": "External Employee Id"
+                        }
+                    },
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MailboxOut"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/config": {
+            "get": {
+                "tags": [
+                    "config"
+                ],
+                "summary": "Read Config",
+                "operationId": "read_config_api_v1_config_get",
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConfigOut"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "put": {
+                "tags": [
+                    "config"
+                ],
+                "summary": "Update Config",
+                "operationId": "update_config_api_v1_config_put",
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ConfigIn"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ConfigOut"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/domains": {
+            "get": {
+                "tags": [
+                    "config"
+                ],
+                "summary": "List Domains",
+                "operationId": "list_domains_api_v1_domains_get",
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "array",
+                                    "items": {
+                                        "$ref": "#/components/schemas/DomainMappingOut"
+                                    },
+                                    "title": "Response List Domains Api V1 Domains Get"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "tags": [
+                    "config"
+                ],
+                "summary": "Create Domain",
+                "operationId": "create_domain_api_v1_domains_post",
+                "parameters": [
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/DomainMappingIn"
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "201": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/DomainMappingOut"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/api/v1/domains/{mapping_id}": {
+            "delete": {
+                "tags": [
+                    "config"
+                ],
+                "summary": "Delete Domain",
+                "operationId": "delete_domain_api_v1_domains__mapping_id__delete",
+                "parameters": [
+                    {
+                        "name": "mapping_id",
+                        "in": "path",
+                        "required": true,
+                        "schema": {
+                            "type": "integer",
+                            "title": "Mapping Id"
+                        }
+                    },
+                    {
+                        "name": "x-api-key",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "X-Api-Key"
+                        }
+                    },
+                    {
+                        "name": "authorization",
+                        "in": "header",
+                        "required": false,
+                        "schema": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "null"
+                                }
+                            ],
+                            "title": "Authorization"
+                        }
+                    }
+                ],
+                "responses": {
+                    "204": {
+                        "description": "Successful Response"
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/healthz": {
+            "get": {
+                "tags": [
+                    "ops"
+                ],
+                "summary": "Healthz",
+                "operationId": "healthz_healthz_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "additionalProperties": {
+                                        "type": "string"
+                                    },
+                                    "type": "object",
+                                    "title": "Response Healthz Healthz Get"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "Body_issue_token_oauth_token_post": {
+                "properties": {
+                    "grant_type": {
+                        "type": "string",
+                        "title": "Grant Type",
+                        "default": "client_credentials"
+                    },
+                    "client_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Client Id"
+                    },
+                    "client_secret": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Client Secret"
+                    }
+                },
+                "type": "object",
+                "title": "Body_issue_token_oauth_token_post"
+            },
+            "ConfigIn": {
+                "properties": {
+                    "email_format": {
+                        "type": "string",
+                        "title": "Email Format"
+                    },
+                    "email_custom_pattern": {
+                        "type": "string",
+                        "title": "Email Custom Pattern",
+                        "default": "{f}{last}"
+                    },
+                    "default_domain": {
+                        "type": "string",
+                        "title": "Default Domain"
+                    },
+                    "callback_enabled": {
+                        "type": "boolean",
+                        "title": "Callback Enabled",
+                        "default": false
+                    },
+                    "callback_url": {
+                        "type": "string",
+                        "title": "Callback Url",
+                        "default": ""
+                    },
+                    "callback_method": {
+                        "type": "string",
+                        "title": "Callback Method",
+                        "default": "POST"
+                    },
+                    "callback_auth_header_name": {
+                        "type": "string",
+                        "title": "Callback Auth Header Name",
+                        "default": ""
+                    },
+                    "callback_auth_header_value": {
+                        "type": "string",
+                        "title": "Callback Auth Header Value",
+                        "default": ""
+                    },
+                    "callback_body_template": {
+                        "type": "string",
+                        "title": "Callback Body Template",
+                        "default": "{\"employeeId\": \"{external_employee_id}\", \"email\": \"{email}\"}"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email_format",
+                    "default_domain"
+                ],
+                "title": "ConfigIn"
+            },
+            "ConfigOut": {
+                "properties": {
+                    "email_format": {
+                        "type": "string",
+                        "title": "Email Format"
+                    },
+                    "email_custom_pattern": {
+                        "type": "string",
+                        "title": "Email Custom Pattern",
+                        "default": "{f}{last}"
+                    },
+                    "default_domain": {
+                        "type": "string",
+                        "title": "Default Domain"
+                    },
+                    "callback_enabled": {
+                        "type": "boolean",
+                        "title": "Callback Enabled",
+                        "default": false
+                    },
+                    "callback_url": {
+                        "type": "string",
+                        "title": "Callback Url",
+                        "default": ""
+                    },
+                    "callback_method": {
+                        "type": "string",
+                        "title": "Callback Method",
+                        "default": "POST"
+                    },
+                    "callback_auth_header_name": {
+                        "type": "string",
+                        "title": "Callback Auth Header Name",
+                        "default": ""
+                    },
+                    "callback_auth_header_value": {
+                        "type": "string",
+                        "title": "Callback Auth Header Value",
+                        "default": ""
+                    },
+                    "callback_body_template": {
+                        "type": "string",
+                        "title": "Callback Body Template",
+                        "default": "{\"employeeId\": \"{external_employee_id}\", \"email\": \"{email}\"}"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email_format",
+                    "default_domain"
+                ],
+                "title": "ConfigOut"
+            },
+            "DomainMappingIn": {
+                "properties": {
+                    "company": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Company"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Domain"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "company",
+                    "domain"
+                ],
+                "title": "DomainMappingIn"
+            },
+            "DomainMappingOut": {
+                "properties": {
+                    "company": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Company"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Domain"
+                    },
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "company",
+                    "domain",
+                    "id"
+                ],
+                "title": "DomainMappingOut"
+            },
+            "EmployeeIn": {
+                "properties": {
+                    "first_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "First Name",
+                        "examples": [
+                            "Jane"
+                        ]
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "title": "Last Name",
+                        "examples": [
+                            "Doe"
+                        ]
+                    },
+                    "company": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Company",
+                        "examples": [
+                            "Acme"
+                        ]
+                    },
+                    "department": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Department",
+                        "examples": [
+                            "Finance"
+                        ]
+                    },
+                    "job_title": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Job Title",
+                        "examples": [
+                            "Analyst"
+                        ]
+                    },
+                    "external_employee_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "External Employee Id",
+                        "description": "Saviynt's employee id, used for read-back.",
+                        "examples": [
+                            "E-1001"
+                        ]
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "first_name",
+                    "last_name"
+                ],
+                "title": "EmployeeIn",
+                "description": "Inbound new-hire payload from Saviynt (or the manual UI form)."
+            },
+            "HTTPValidationError": {
+                "properties": {
+                    "detail": {
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        },
+                        "type": "array",
+                        "title": "Detail"
+                    }
+                },
+                "type": "object",
+                "title": "HTTPValidationError"
+            },
+            "MailboxOut": {
+                "properties": {
+                    "id": {
+                        "type": "integer",
+                        "title": "Id"
+                    },
+                    "external_employee_id": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "External Employee Id"
+                    },
+                    "first_name": {
+                        "type": "string",
+                        "title": "First Name"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "title": "Last Name"
+                    },
+                    "company": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Company"
+                    },
+                    "department": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Department"
+                    },
+                    "job_title": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Job Title"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "title": "Display Name"
+                    },
+                    "email": {
+                        "type": "string",
+                        "title": "Email"
+                    },
+                    "user_principal_name": {
+                        "type": "string",
+                        "title": "User Principal Name"
+                    },
+                    "status": {
+                        "type": "string",
+                        "title": "Status"
+                    },
+                    "source": {
+                        "type": "string",
+                        "title": "Source"
+                    },
+                    "callback_status": {
+                        "type": "string",
+                        "title": "Callback Status"
+                    },
+                    "callback_detail": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Callback Detail"
+                    },
+                    "created_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Created At"
+                    },
+                    "updated_at": {
+                        "type": "string",
+                        "format": "date-time",
+                        "title": "Updated At"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "id",
+                    "external_employee_id",
+                    "first_name",
+                    "last_name",
+                    "company",
+                    "department",
+                    "job_title",
+                    "display_name",
+                    "email",
+                    "user_principal_name",
+                    "status",
+                    "source",
+                    "callback_status",
+                    "callback_detail",
+                    "created_at",
+                    "updated_at"
+                ],
+                "title": "MailboxOut"
+            },
+            "PreviewIn": {
+                "properties": {
+                    "first_name": {
+                        "type": "string",
+                        "title": "First Name"
+                    },
+                    "last_name": {
+                        "type": "string",
+                        "title": "Last Name"
+                    },
+                    "company": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Company"
+                    },
+                    "department": {
+                        "anyOf": [
+                            {
+                                "type": "string"
+                            },
+                            {
+                                "type": "null"
+                            }
+                        ],
+                        "title": "Department"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "first_name",
+                    "last_name"
+                ],
+                "title": "PreviewIn"
+            },
+            "PreviewOut": {
+                "properties": {
+                    "email": {
+                        "type": "string",
+                        "title": "Email"
+                    },
+                    "display_name": {
+                        "type": "string",
+                        "title": "Display Name"
+                    },
+                    "domain": {
+                        "type": "string",
+                        "title": "Domain"
+                    },
+                    "format_used": {
+                        "type": "string",
+                        "title": "Format Used"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "email",
+                    "display_name",
+                    "domain",
+                    "format_used"
+                ],
+                "title": "PreviewOut"
+            },
+            "ValidationError": {
+                "properties": {
+                    "loc": {
+                        "items": {
+                            "anyOf": [
+                                {
+                                    "type": "string"
+                                },
+                                {
+                                    "type": "integer"
+                                }
+                            ]
+                        },
+                        "type": "array",
+                        "title": "Location"
+                    },
+                    "msg": {
+                        "type": "string",
+                        "title": "Message"
+                    },
+                    "type": {
+                        "type": "string",
+                        "title": "Error Type"
+                    }
+                },
+                "type": "object",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "title": "ValidationError"
+            }
+        }
+    }
+}

@@ -1,11 +1,16 @@
 """Create tables and seed the singleton Config row from environment defaults."""
 
+import logging
+
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from . import security
 from .config import settings
 from .database import Base, SessionLocal, engine
-from .models import Config, DomainMapping
+from .models import AdminUser, Config, DomainMapping
+
+logger = logging.getLogger("o365replicator.seed")
 
 
 def init_db() -> None:
@@ -13,7 +18,24 @@ def init_db() -> None:
     with SessionLocal() as db:
         _seed_config(db)
         _seed_example_domains(db)
+        _seed_admin(db)
         db.commit()
+
+
+def _seed_admin(db: Session) -> None:
+    """Create the bootstrap admin from env vars if configured and none exists yet."""
+    if db.execute(select(AdminUser.id).limit(1)).first() is not None:
+        return
+    if settings.admin_username and settings.admin_password:
+        db.add(
+            AdminUser(
+                username=settings.admin_username.strip(),
+                password_hash=security.hash_secret(settings.admin_password),
+            )
+        )
+        logger.info("Seeded bootstrap admin '%s' from environment.", settings.admin_username)
+    else:
+        logger.info("No admin configured; first UI visit will show the setup screen.")
 
 
 def _seed_config(db: Session) -> None:

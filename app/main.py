@@ -8,7 +8,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 
 from . import __version__
-from .routers import config_api, provision, ui
+from .routers import auth_ui, config_api, oauth, provision, ui
 from .seed import init_db
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s %(message)s")
@@ -24,16 +24,18 @@ app = FastAPI(
     title="o365Replicator",
     description=(
         "A mock Microsoft 365 email provisioning service for POC/demo use. "
-        "SavvyIt fires a new-hire webhook at `/api/v1/provision`; the service generates "
+        "Saviynt fires a new-hire webhook at `/api/v1/provision`; the service generates "
         "an email address, stores a mailbox record, returns it synchronously, and "
-        "(optionally) writes it back to SavvyIt."
+        "(optionally) writes it back to Saviynt."
     ),
     version=__version__,
     lifespan=lifespan,
 )
 
+app.include_router(oauth.router)
 app.include_router(provision.router)
 app.include_router(config_api.router)
+app.include_router(auth_ui.router)
 app.include_router(ui.router)
 
 _static_dir = Path(__file__).resolve().parent / "static"

@@ -16,7 +16,7 @@ def log_activity(db: Session, event: str, message: str, *, level: str = "info", 
 
 
 def provision_employee(db: Session, employee: EmployeeIn, *, source: str = "api", run_callback: bool = True) -> Mailbox:
-    """Generate a mailbox for an employee, persist it, and optionally write back to SavvyIt.
+    """Generate a mailbox for an employee, persist it, and optionally write back to Saviynt.
 
     Idempotent on external_employee_id: if a mailbox already exists for that id,
     it is returned unchanged rather than creating a duplicate.
@@ -78,7 +78,7 @@ def provision_employee(db: Session, employee: EmployeeIn, *, source: str = "api"
         log_activity(
             db,
             "callback",
-            f"Write-back to SavvyIt for {generated.email}: {status_result}",
+            f"Write-back to Saviynt for {generated.email}: {status_result}",
             level="info" if status_result in ("success", "none") else "warn",
             detail=detail,
         )

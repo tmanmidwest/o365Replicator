@@ -1,6 +1,6 @@
-"""Write-back callback to SavvyIt: pushes the generated email back to the HR system.
+"""Write-back callback to Saviynt: pushes the generated email back to the HR system.
 
-The callback is intentionally generic so it can target whatever endpoint SavvyIt
+The callback is intentionally generic so it can target whatever endpoint Saviynt
 exposes. The body is a JSON template whose tokens are filled from the mailbox
 record, and an optional single auth header is attached.
 """

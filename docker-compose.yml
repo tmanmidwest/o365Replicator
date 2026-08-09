@@ -9,8 +9,16 @@ services:
       DATABASE_URL: sqlite:////data/o365replicator.db
       DEFAULT_EMAIL_FORMAT: first.last
       DEFAULT_DOMAIN: demo365.local
-      # Set an API_KEY to require the X-API-Key header on /api/v1/provision.
+      # Optional legacy static key accepted via X-API-Key (UI can mint keys too).
       API_KEY: ""
+      # Bootstrap admin (optional). Leave blank to use the first-run setup screen.
+      # Prefer setting these via a .env file or secrets, not committed compose.
+      ADMIN_USERNAME: ""
+      ADMIN_PASSWORD: ""
+      SESSION_TTL_HOURS: "12"
+      # True behind the Cloudflare tunnel (HTTPS). Only set false for local http.
+      COOKIE_SECURE: "true"
+      OAUTH_TOKEN_TTL_SECONDS: "3600"
     volumes:
       - o365_data:/data
     restart: unless-stopped

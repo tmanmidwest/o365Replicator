@@ -4,12 +4,13 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from ..auth import require_api_client
 from ..database import get_db
 from ..models import DomainMapping
 from ..schemas import ConfigIn, ConfigOut, DomainMappingIn, DomainMappingOut
 from ..seed import get_config
 
-router = APIRouter(prefix="/api/v1", tags=["config"])
+router = APIRouter(prefix="/api/v1", tags=["config"], dependencies=[Depends(require_api_client)])
 
 
 @router.get("/config", response_model=ConfigOut)
