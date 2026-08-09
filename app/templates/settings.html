@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Settings · o365Replicator{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Settings</h1></div>
+
+<form method="post" action="/settings" class="card form">
+  <h2>Email generation</h2>
+  <div class="row">
+    <label>Address format
+      <select name="email_format">
+        {% for f in formats %}
+        <option value="{{ f }}" {{ 'selected' if f == config.email_format else '' }}>{{ f }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Custom pattern <small class="muted">(when format = custom)</small>
+      <input name="email_custom_pattern" value="{{ config.email_custom_pattern }}">
+    </label>
+  </div>
+  <p class="hint">Tokens: <code>{first}</code> <code>{last}</code> <code>{f}</code> <code>{l}</code>
+    <code>{company}</code> <code>{department}</code>. Names are lowercased, de-accented, stripped of symbols.</p>
+  <div class="row">
+    <label>Default / fallback domain<input name="default_domain" value="{{ config.default_domain }}"></label>
+  </div>
+
+  <h2>Write-back to SavvyIt</h2>
+  <label class="check">
+    <input type="checkbox" name="callback_enabled" {{ 'checked' if config.callback_enabled else '' }}>
+    Push the generated email back to SavvyIt after provisioning
+  </label>
+  <div class="row">
+    <label>Callback URL<input name="callback_url" value="{{ config.callback_url }}" placeholder="https://savvyit.example/api/employees/{external_employee_id}"></label>
+    <label>Method
+      <select name="callback_method">
+        {% for meth in ['POST','PUT','PATCH'] %}
+        <option value="{{ meth }}" {{ 'selected' if meth == config.callback_method else '' }}>{{ meth }}</option>
+        {% endfor %}
+      </select>
+    </label>
+  </div>
+  <div class="row">
+    <label>Auth header name<input name="callback_auth_header_name" value="{{ config.callback_auth_header_name }}" placeholder="Authorization"></label>
+    <label>Auth header value<input name="callback_auth_header_value" value="{{ config.callback_auth_header_value }}" placeholder="Bearer …"></label>
+  </div>
+  <label>Body template (JSON)
+    <textarea name="callback_body_template" rows="3">{{ config.callback_body_template }}</textarea>
+  </label>
+  <p class="hint">Tokens: <code>{email}</code> <code>{external_employee_id}</code> <code>{user_principal_name}</code>
+    <code>{display_name}</code> <code>{first_name}</code> <code>{last_name}</code> <code>{company}</code>.</p>
+
+  <div class="actions"><button class="btn" type="submit">Save settings</button></div>
+</form>
+
+<div class="card">
+  <h2>Domain mappings (by company)</h2>
+  {% if domains %}
+  <table class="grid tight">
+    <thead><tr><th>Company</th><th>Domain</th><th></th></tr></thead>
+    <tbody>
+      {% for d in domains %}
+      <tr>
+        <td>{{ d.company }}</td>
+        <td><code>{{ d.domain }}</code></td>
+        <td>
+          <form method="post" action="/settings/domains/{{ d.id }}/delete">
+            <button class="link-danger" type="submit">remove</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="muted">No mappings yet — new hires use the default domain.</p>
+  {% endif %}
+  <form method="post" action="/settings/domains" class="inline-form">
+    <input name="company" placeholder="Company" required>
+    <input name="domain" placeholder="domain.com" required>
+    <button class="btn small" type="submit">Add / update</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{% extends "base.html" %}
+{% block title %}Mailboxes · o365Replicator{% endblock %}
+{% block content %}
+<div class="page-head">
+  <h1>Provisioned mailboxes</h1>
+  <div class="head-meta">
+    <span class="pill">Format: <code>{{ config.email_format }}</code></span>
+    <span class="pill">Default domain: <code>{{ config.default_domain }}</code></span>
+    <span class="pill {{ 'ok' if config.callback_enabled else 'muted' }}">
+      Write-back: {{ 'on' if config.callback_enabled else 'off' }}
+    </span>
+    <a class="btn" href="/new">+ New hire</a>
+  </div>
+</div>
+
+{% if mailboxes %}
+<table class="grid">
+  <thead>
+    <tr>
+      <th>Employee</th><th>Email</th><th>Company</th><th>Title</th>
+      <th>Source</th><th>Write-back</th><th>Created</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for m in mailboxes %}
+    <tr>
+      <td>
+        <strong>{{ m.display_name }}</strong>
+        {% if m.external_employee_id %}<br><small class="muted">{{ m.external_employee_id }}</small>{% endif %}
+      </td>
+      <td><code class="email">{{ m.email }}</code></td>
+      <td>{{ m.company or "—" }}</td>
+      <td>{{ m.job_title or "—" }}</td>
+      <td><span class="tag">{{ m.source }}</span></td>
+      <td>
+        {% if m.callback_status == 'success' %}<span class="tag ok">sent</span>
+        {% elif m.callback_status == 'failed' %}<span class="tag err" title="{{ m.callback_detail }}">failed</span>
+        {% elif m.callback_status == 'pending' %}<span class="tag">pending</span>
+        {% else %}<span class="muted">—</span>{% endif %}
+      </td>
+      <td><small class="muted">{{ m.created_at.strftime('%Y-%m-%d %H:%M') }}</small></td>
+      <td>
+        <form method="post" action="/mailboxes/{{ m.id }}/delete" onsubmit="return confirm('Delete {{ m.email }}?')">
+          <button class="link-danger" type="submit">delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="empty">
+  <p>No mailboxes yet.</p>
+  <p class="muted">Fire a webhook at <code>POST /api/v1/provision</code> or <a href="/new">add a new hire</a>.</p>
+</div>
+{% endif %}
+{% endblock %}

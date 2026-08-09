@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}New hire · o365Replicator{% endblock %}
+{% block content %}
+<div class="page-head"><h1>Provision a new hire</h1></div>
+<p class="muted">Simulates a SavvyIt onboarding event. Generates an email using the current
+format (<code>{{ config.email_format }}</code>) and persists a mailbox record.</p>
+
+<form method="post" action="/new" class="card form" id="newForm">
+  <div class="row">
+    <label>First name*<input name="first_name" required autofocus></label>
+    <label>Last name*<input name="last_name" required></label>
+  </div>
+  <div class="row">
+    <label>Company<input name="company" placeholder="Acme"></label>
+    <label>Department<input name="department" placeholder="Finance"></label>
+  </div>
+  <div class="row">
+    <label>Job title<input name="job_title" placeholder="Analyst"></label>
+    <label>SavvyIt employee id<input name="external_employee_id" placeholder="E-1001"></label>
+  </div>
+  <div class="preview" id="preview">Live preview will appear here…</div>
+  <div class="actions">
+    <button class="btn" type="submit">Provision mailbox</button>
+    <a class="btn ghost" href="/">Cancel</a>
+  </div>
+</form>
+
+<script>
+const form = document.getElementById('newForm');
+const preview = document.getElementById('preview');
+async function refresh() {
+  const first = form.first_name.value.trim();
+  const last = form.last_name.value.trim();
+  if (!first || !last) { preview.textContent = 'Live preview will appear here…'; return; }
+  try {
+    const res = await fetch('/api/v1/preview', {
+      method: 'POST', headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({first_name: first, last_name: last, company: form.company.value.trim() || null, department: form.department.value.trim() || null})
+    });
+    const data = await res.json();
+    preview.innerHTML = '→ <strong>' + data.email + '</strong> <span class="muted">(' + data.display_name + ', domain ' + data.domain + ')</span>';
+  } catch (e) { preview.textContent = 'preview unavailable'; }
+}
+['first_name','last_name','company','department'].forEach(n => form[n].addEventListener('input', refresh));
+</script>
+{% endblock %}

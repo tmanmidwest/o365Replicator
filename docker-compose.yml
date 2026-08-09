@@ -1,0 +1,19 @@
+services:
+  o365replicator:
+    build: .
+    image: o365replicator:latest
+    container_name: o365replicator
+    ports:
+      - "8080:8080"
+    environment:
+      DATABASE_URL: sqlite:////data/o365replicator.db
+      DEFAULT_EMAIL_FORMAT: first.last
+      DEFAULT_DOMAIN: demo365.local
+      # Set an API_KEY to require the X-API-Key header on /api/v1/provision.
+      API_KEY: ""
+    volumes:
+      - o365_data:/data
+    restart: unless-stopped
+
+volumes:
+  o365_data:
